@@ -93,13 +93,6 @@
 			<artifactId>neo4j</artifactId>
 			<version>${neo4j.version}</version>
 		</dependency>
-		<!--<dependency>-->
-			<!--<groupId>org.neo4j</groupId>-->
-			<!--<artifactId>neo4j-kernel</artifactId>-->
-			<!--<version>${neo4j.version}</version>-->
-			<!--<type>test-jar</type>-->
-			<!--<scope>test</scope>-->
-		<!--</dependency>-->
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>graph-algorithms-algo</artifactId>
@@ -121,7 +114,7 @@
 		<dependency>
 			<groupId>org.neo4j.community</groupId>
 			<artifactId>it-test-support</artifactId>
-			<version>3.5.4</version>
+			<version>${neo4j.version}</version>
 			<scope>test</scope>
 		</dependency>
 
