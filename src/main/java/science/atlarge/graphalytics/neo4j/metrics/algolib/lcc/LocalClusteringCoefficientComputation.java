@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.neo4j.metrics.algolib.lcc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphalgo.TriangleProc;
+//import org.neo4j.graphalgo.TriangleProc;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import science.atlarge.graphalytics.neo4j.Neo4jTransactionManager;
@@ -48,7 +48,7 @@ public class LocalClusteringCoefficientComputation {
 		this.graphDatabase = graphDatabase;
 		this.directed = directed;
 
-		AlgoLibHelper.registerProcedure(graphDatabase, TriangleProc.class);
+	//	AlgoLibHelper.registerProcedure(graphDatabase, TriangleProc.class);
 	}
 
 	/**

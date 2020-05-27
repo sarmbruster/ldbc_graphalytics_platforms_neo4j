@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.neo4j.metrics.algolib.bfs;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphalgo.ShortestPathProc;
+//import org.neo4j.graphalgo.ShortestPathProc;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import science.atlarge.graphalytics.neo4j.Neo4jConstants;
@@ -53,7 +53,7 @@ public class BreadthFirstSearchComputation {
         this.startVertexId = startVertexId;
         this.directed = directed;
 
-        AlgoLibHelper.registerProcedure(graphDatabase, ShortestPathProc.class);
+        //AlgoLibHelper.registerProcedure(graphDatabase, ShortestPathProc.class);
     }
 
     /**
