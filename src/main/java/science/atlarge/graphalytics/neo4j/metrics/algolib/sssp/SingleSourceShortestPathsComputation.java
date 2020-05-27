@@ -78,6 +78,7 @@ public class SingleSourceShortestPathsComputation {
                             "    }\n" +
                             "  },\n" +
                             "  startNode: startNode,\n" +
+                            "  relationshipWeightProperty: '%s' \n,"+
                             "  delta: 3.0,\n" +
                             "  writeProperty: '%s'\n" +
                             "})\n" +
@@ -85,6 +86,7 @@ public class SingleSourceShortestPathsComputation {
                             "RETURN nodeCount, loadDuration, evalDuration, writeDuration",
                     Neo4jConstants.ID_PROPERTY,
                     startVertexId,
+                    Neo4jConstants.WEIGHT_PROPERTY,
                     Neo4jConstants.WEIGHT_PROPERTY,
                     SSSP
             );
