@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.neo4j.metrics.algolib.wcc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphalgo.UnionFindProc;
+import org.neo4j.graphalgo.wcc.WccWriteProc;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import science.atlarge.graphalytics.neo4j.Neo4jTransactionManager;
@@ -44,7 +44,7 @@ public class WeaklyConnectedComponentsComputation {
     public WeaklyConnectedComponentsComputation(GraphDatabaseService graphDatabase) throws KernelException {
         this.graphDatabase = graphDatabase;
 
-        AlgoLibHelper.registerProcedure(graphDatabase, UnionFindProc.class);
+        AlgoLibHelper.registerProcedure(graphDatabase, WccWriteProc.class);
     }
 
     /**
@@ -55,8 +55,8 @@ public class WeaklyConnectedComponentsComputation {
         LOG.debug("- Starting Weakly Connected Components algorithm");
         try (Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(graphDatabase)) {
             final String command = String.format("" +
-                            "CALL algo.unionFind(null, null, {write: true, partitionProperty: '%s'})\n" +
-                            "YIELD nodes, setCount, loadMillis, computeMillis, writeMillis",
+                            "CALL gds.wcc.write({nodeProjection: '*',relationshipProjection: '*', writeProperty: '%s' })\n" +
+                            "YIELD nodePropertiesWritten, componentCount;",
                     COMPONENT
             );
             graphDatabase.execute(command);

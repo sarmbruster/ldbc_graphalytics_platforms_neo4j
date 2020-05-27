@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.neo4j.metrics.algolib.sssp;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphalgo.ShortestPathProc;
+import org.neo4j.graphalgo.shortestpath.ShortestPathDeltaSteppingProc;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
@@ -56,7 +56,7 @@ public class SingleSourceShortestPathsComputation {
         this.startVertexId = startVertexId;
         this.directed = directed;
 
-        AlgoLibHelper.registerProcedure(graphDatabase, ShortestPathProc.class);
+        AlgoLibHelper.registerProcedure(graphDatabase, ShortestPathDeltaSteppingProc.class);
     }
 
     /**
@@ -68,18 +68,25 @@ public class SingleSourceShortestPathsComputation {
         Map<Long, Double> costs = new HashMap<>();
         try (Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(graphDatabase)) {
             final String command = String.format("" +
-                            "MATCH (startNode {%s: %d}), (endNode)\n" +
-                            "CALL algo.shortestPath(startNode, endNode, '%s',\n" +
-                            "  {write: true, writeProperty: '%s', direction: '%s'}\n" +
-                            ")\n" +
-                            "YIELD nodeCount, totalCost, loadMillis, evalMillis, writeMillis\n" +
-                            "RETURN count(*)",
+                            "MATCH (startNode {%s: %d})\n" +
+                            "CALL gds.alpha.shortestPath.deltaStepping.write({\n" +
+                            " nodeProjection: '*',\n" +
+                            "  relationshipProjection: {\n" +
+                            "    EDGE: {\n" +
+                            "      type: 'EDGE',\n" +
+                            "      properties: '%s'\n" +
+                            "    }\n" +
+                            "  },\n" +
+                            "  startNode: startNode,\n" +
+                            "  delta: 3.0,\n" +
+                            "  writeProperty: '%s'\n" +
+                            "})\n" +
+                            "YIELD nodeCount, loadDuration, evalDuration, writeDuration\n" +
+                            "RETURN nodeCount, loadDuration, evalDuration, writeDuration",
                     Neo4jConstants.ID_PROPERTY,
                     startVertexId,
                     Neo4jConstants.WEIGHT_PROPERTY,
-                    SSSP,
-                    directed ? "OUTGOING" : "BOTH",
-                    Neo4jConstants.ID_PROPERTY
+                    SSSP
             );
             final Result result = graphDatabase.execute(command);
         }

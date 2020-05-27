@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.neo4j.metrics.algolib.pr;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphalgo.PageRankProc;
+import org.neo4j.graphalgo.pagerank.PageRankWriteProc;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import science.atlarge.graphalytics.neo4j.Neo4jTransactionManager;
@@ -56,7 +56,7 @@ public class PageRankComputation {
         this.dampingFactor = dampingFactor;
         this.directed = directed;
 
-        AlgoLibHelper.registerProcedure(graphDatabase, PageRankProc.class);
+        AlgoLibHelper.registerProcedure(graphDatabase, PageRankWriteProc.class);
     }
 
     /**
@@ -66,14 +66,15 @@ public class PageRankComputation {
         LOG.debug("- Starting PageRank algorithm");
         try (Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(graphDatabase)) {
             final String command = String.format("" +
-                            "CALL algo.pageRank(null, null,\n" +
-                            "  {write: true, writeProperty: '%s', iterations: %d, dampingFactor: %f, direction: '%s'}\n" +
-                            ")\n" +
-                            "YIELD nodes, iterations, loadMillis, computeMillis, writeMillis, dampingFactor, write, writeProperty",
+                            "CALL gds.pageRank.write({nodeProjection: '*',relationshipProjection: '*',\n" +
+                            "  writeProperty: '%s',"+
+                            "  maxIterations: %d,\n" +
+                            "  dampingFactor: %f\n" +
+                            "})\n" +
+                            "YIELD nodePropertiesWritten AS writtenProperties, ranIterations",
                     PAGERANK,
                     maxIterations,
-                    dampingFactor,
-                    directed ? "OUTGOING" : "BOTH"
+                    dampingFactor
             );
             graphDatabase.execute(command);
         }
