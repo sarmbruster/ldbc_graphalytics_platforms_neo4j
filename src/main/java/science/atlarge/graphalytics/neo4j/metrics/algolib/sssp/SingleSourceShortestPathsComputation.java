@@ -79,7 +79,7 @@ public class SingleSourceShortestPathsComputation {
                             "  },\n" +
                             "  startNode: startNode,\n" +
                             "  relationshipWeightProperty: '%s' \n,"+
-                            "  delta: 3.0,\n" +
+                            "  delta: 1.0,\n" +
                             "  writeProperty: '%s'\n" +
                             "})\n" +
                             "YIELD nodeCount, loadDuration, evalDuration, writeDuration\n" +
