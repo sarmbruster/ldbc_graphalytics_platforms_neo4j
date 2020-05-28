@@ -61,11 +61,23 @@ public class CommunityDetectionLPComputation {
      */
     public void run() {
         LOG.debug("- Starting Community Detection Label Propagation algorithm");
+        // the CDLP (label propagation) computation is defined in
+        // https://github.com/neo4j/graph-data-science/blob/master/algo/src/main/java/org/neo4j/graphalgo/labelpropagation/ComputeStep.java
         try (Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(graphDatabase)) {
             final String command = String.format("" +
-                            "CALL gds.labelPropagation.write(" +
-                            "{nodeProjection: '*',relationshipProjection: '*', writeProperty: '%s',maxIterations: %d })\n"+
+                            "CALL gds.labelPropagation.write({" +
+                            "  nodeProjection: '*',\n" +
+                            "  relationshipProjection: {\n" +
+                            "    EDGE: {\n" +
+                            "      orientation: '%s',\n" +
+                            "      type: 'EDGE'\n" +
+                            "    }\n" +
+                            "  },\n" +
+                            "  writeProperty: '%s'," +
+                            "  maxIterations: %d " +
+                            "})\n"+
                             "YIELD ranIterations, communityCount",
+                    directed ? "NATURAL" : "UNDIRECTED",
                     LABEL,
                     maxIterations
             );
