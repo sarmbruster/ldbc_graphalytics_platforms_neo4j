@@ -70,7 +70,7 @@ public class SingleSourceShortestPathsComputation {
             final String command = String.format("" +
                             "MATCH (startNode {%s: %d})\n" +
                             "CALL gds.alpha.shortestPath.deltaStepping.write({\n" +
-                            " nodeProjection: '*',\n" +
+                            "  nodeProjection: '*',\n" +
                             "  relationshipProjection: {\n" +
                             "    EDGE: {\n" +
                             "      orientation: '%s',\n" +
