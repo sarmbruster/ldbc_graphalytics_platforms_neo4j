@@ -73,6 +73,7 @@ public class SingleSourceShortestPathsComputation {
                             " nodeProjection: '*',\n" +
                             "  relationshipProjection: {\n" +
                             "    EDGE: {\n" +
+                            "      orientation: '%s',\n" +
                             "      type: 'EDGE',\n" +
                             "      properties: '%s'\n" +
                             "    }\n" +
@@ -86,6 +87,7 @@ public class SingleSourceShortestPathsComputation {
                             "RETURN nodeCount, loadDuration, evalDuration, writeDuration",
                     Neo4jConstants.ID_PROPERTY,
                     startVertexId,
+                    directed ? "NATURAL" : "UNDIRECTED",
                     Neo4jConstants.WEIGHT_PROPERTY,
                     Neo4jConstants.WEIGHT_PROPERTY,
                     SSSP
