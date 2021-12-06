@@ -18,7 +18,13 @@ To initialize the benchmark package, run:
 where
 
 * `MY_GRAPH_DIR` should point to the directory of the graphs and the validation data. The default value is `~/graphs`.
-* `NEOJ4_DIR` should point to Neo4j's directory. The default value is `~/neo4j`.
+* `NEO4J_DIR` should point to Neo4j's directory. The default value is `~/neo4j`.
 * `IMPLEMENTATION` selects the implementation to use (`embedded` or `algolib`). The default value is `embedded`.
 
-You can later review these configurations are set in `config/benchmark.properties` and `config/platform.properties`.
+To get Neo4j and install it to the default location, run:
+
+```bash
+wget https://dist.neo4j.org/neo4j-community-3.5.30-unix.tar.gz
+tar xf neo4j-community-3.5.30-unix.tar.gz
+mv neo4j-community-3.5.30/ ~/neo4j/
+```
