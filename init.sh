@@ -4,7 +4,7 @@ set -e
 
 GRAPHS_DIR=${1:-~/graphs}
 NEO4J_DIR=${2:-~/neo4j}
-IMPLEMENTATION=${3:-algolib}
+IMPLEMENTATION=${3:-embedded}
 
 PROJECT=graphalytics-1.3.0-neo4j-0.1-SNAPSHOT
 
