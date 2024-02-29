@@ -28,3 +28,8 @@ wget https://dist.neo4j.org/neo4j-community-3.5.30-unix.tar.gz
 tar xf neo4j-community-3.5.30-unix.tar.gz
 mv neo4j-community-3.5.30/ ~/neo4j/
 ```
+export java_opts='-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
+
+export FORKED_JAVA_TOOL_OPTIONS='-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006'
+
+ ./init.sh ../../data ~/Downloads/neo4j-enterprise-5.16.0    

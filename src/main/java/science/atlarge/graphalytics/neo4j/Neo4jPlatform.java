@@ -18,17 +18,18 @@ package science.atlarge.graphalytics.neo4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
+import science.atlarge.graphalytics.domain.algorithms.AlgorithmParameters;
+import science.atlarge.graphalytics.domain.algorithms.PageRankParameters;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.domain.graph.LoadedGraph;
 import science.atlarge.graphalytics.execution.*;
-import science.atlarge.graphalytics.neo4j.metrics.AbstractNeo4jJobFactory;
-import science.atlarge.graphalytics.neo4j.metrics.algolib.AlgolibNeo4jJobFactory;
-import science.atlarge.graphalytics.neo4j.metrics.embedded.EmbeddedNeo4jJobFactory;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Neo4j platform driver for the Graphalytics benchmark.
@@ -55,7 +56,6 @@ public class Neo4jPlatform implements Platform {
 		Path loadedPath = Paths.get("./intermediate").resolve(formattedGraph.getName());
 
 		try {
-
 			int exitCode = loader.load(loadedPath.toString());
 			if (exitCode != 0) {
 				throw new PlatformExecutionException("Neo4j exited with an error code: " + exitCode);
@@ -98,65 +98,35 @@ public class Neo4jPlatform implements Platform {
 	public void run(RunSpecification runSpecification) throws PlatformExecutionException {
 		BenchmarkRun benchmarkRun = runSpecification.getBenchmarkRun();
 		BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
-		RuntimeSetup runtimeSetup = runSpecification.getRuntimeSetup();
-
-		Algorithm algorithm = benchmarkRun.getAlgorithm();
-		Neo4jConfiguration platformConfig = Neo4jConfiguration.parsePropertiesFile();
-		String inputPath = runtimeSetup.getLoadedGraph().getLoadedPath();
+//		RuntimeSetup runtimeSetup = runSpecification.getRuntimeSetup();
 		String outputPath = benchmarkRunSetup.getOutputDir().resolve(benchmarkRun.getName()).toAbsolutePath().toString();
 
-		AbstractNeo4jJobFactory jobFactory;
-		switch (platformConfig.getBenchmarkImplementation()) {
-			case ALGOLIB:
-				jobFactory = new AlgolibNeo4jJobFactory(
-						runSpecification, platformConfig, inputPath, outputPath
-				);
-				break;
-			case EMBEDDED:
-				jobFactory = new EmbeddedNeo4jJobFactory(
-						runSpecification, platformConfig, inputPath, outputPath
-				);
-				break;
-			default:
-				throw new PlatformExecutionException("Benchmark implementation is not defined");
-		}
 
-		Neo4jJob job;
-		switch (algorithm) {
-			case BFS:
-				job = jobFactory.createBfsJob();
-				break;
-			case CDLP:
-				job = jobFactory.createCdlpJob();
-				break;
-			case LCC:
-				job = jobFactory.createLccJob();
-				break;
-			case PR:
-				job = jobFactory.createPrJob();
-				break;
-			case WCC:
-				job = jobFactory.createWccJob();
-				break;
-			case SSSP:
-				job = jobFactory.createSsspJob();
-				break;
-			default:
-				throw new PlatformExecutionException("Failed to load algorithm implementation.");
-		}
-
+		Algorithm algorithm = benchmarkRun.getAlgorithm();
+		AlgorithmParameters algorithmParameters = benchmarkRun.getAlgorithmParameters();
+		Neo4jConfiguration platformConfig = Neo4jConfiguration.parsePropertiesFile();
 		LOG.info("Executing benchmark with algorithm \"{}\" on graph \"{}\".",
 				benchmarkRun.getAlgorithm().getName(),
 				benchmarkRun.getFormattedGraph().getName());
 
-		try {
-			int exitCode = job.execute();
-			if (exitCode != 0) {
-				throw new PlatformExecutionException("Neo4j exited with an error code: " + exitCode);
-			}
-		} catch (Exception e) {
-			throw new PlatformExecutionException("Failed to execute a Neo4j job.", e);
+		String graphName = benchmarkRun.getGraph().getName();
+		String cypher;
+		Map<String,Object> config;
+		switch (algorithm) {
+			case PR:
+				PageRankParameters params = (PageRankParameters) algorithmParameters;
+				config = Map.of("maxIterations", params.getNumberOfIterations(),
+						"dampingFactor", params.getDampingFactor(),
+						"mutateProperty", "pagerank");
+				cypher = "CALL gds.pageRank.mutate($graphName, $config)";
+
+				break;
+			default:
+				throw new IllegalArgumentException("Neo4j Platform Driver doesn't how to run algorithm " + algorithm.getName());
 		}
+
+		Neo4jJob job = new Neo4jJob(platformConfig, "Vertex", "EDGE", Collections.emptyMap(), cypher, graphName, config, outputPath);
+		job.execute();
 
 		LOG.info("Executed benchmark with algorithm \"{}\" on graph \"{}\".",
 				benchmarkRun.getAlgorithm().getName(),

@@ -63,29 +63,31 @@ while [[ $# -gt 1 ]] # Parse two arguments: [--key value] or [-k value]
   shift
 done
 
-#ln -fs $INPUT_VERTEX_PATH $OUTPUT_PATH/vertex.csv
-#ln -fs $INPUT_EDGE_PATH $OUTPUT_PATH/edge.csv
+HEADER_NODES=$(mktemp)
+echo "VID:ID" >> ${HEADER_NODES}
+HEADER_RELATIONSHIPS=$(mktemp)
 
-# TODO Reconstruct executable commandline instructions (platform-specific).
-rm -rf ${OUTPUT_PATH}
-mkdir -p ${OUTPUT_PATH}
-
-sed "1i VID:ID" ${INPUT_VERTEX_PATH} > ${OUTPUT_PATH}/vertex.csv
 case ${WEIGHTED} in
     "true")
-        sed "1i :START_ID :END_ID WEIGHT:DOUBLE" ${INPUT_EDGE_PATH} > ${OUTPUT_PATH}/edge.csv
+        echo ":START_ID :END_ID WEIGHT:DOUBLE" >> ${HEADER_RELATIONSHIPS}
         ;;
     "false")
-        sed "1i :START_ID :END_ID" ${INPUT_EDGE_PATH} > ${OUTPUT_PATH}/edge.csv
+        echo ":START_ID :END_ID" >> ${HEADER_RELATIONSHIPS}
         ;;
     *)
         echo "Bad weight parameter" >&2
 	    exit 1
 esac
 
-${NEO4J_HOME}/bin/neo4j-import \
-  --into "$OUTPUT_PATH/database" \
+${NEO4J_HOME}/bin/neo4j-admin database import full \
   --id-type=INTEGER \
-  --nodes:Vertex "$OUTPUT_PATH/vertex.csv" \
-  --relationships:EDGE "$OUTPUT_PATH/edge.csv" \
-  --delimiter ' '
+  --nodes=Vertex="${HEADER_NODES},${INPUT_VERTEX_PATH}" \
+  --relationships=EDGE="${HEADER_RELATIONSHIPS},${INPUT_EDGE_PATH}" \
+  --delimiter ' ' \
+  --overwrite-destination \
+  $GRAPH_NAME
+
+echo "CREATE DATABASE \`${GRAPH_NAME}\`;" | ${NEO4J_HOME}/bin/cypher-shell
+
+#rm ${HEADER_NODES}
+#rm ${HEADER_RELATIONSHIPS}

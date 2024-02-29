@@ -17,92 +17,98 @@ package science.atlarge.graphalytics.neo4j;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.kernel.api.exceptions.KernelException;
-import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
-import science.atlarge.graphalytics.domain.graph.Graph;
-import science.atlarge.graphalytics.execution.BenchmarkRunSetup;
-import science.atlarge.graphalytics.execution.RunSpecification;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.*;
+import science.atlarge.graphalytics.execution.PlatformExecutionException;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
  * Base class for all jobs in the platform driver. Configures and executes a platform job using the parameters
  * and executable specified by the subclass for a specific algorithm.
  *
- * @author Gábor Szárnyas
- * @author Bálint Hegyi
+ * @author Stefan Armbruster
  */
-public abstract class Neo4jJob {
-    // Path to the Neo4j configuration
-    private static final String PROPERTIES_PATH = "/neo4j.properties";
-    private static final Logger LOG = LogManager.getLogger();
+public class Neo4jJob {
 
-    private final String jobId;
-    private final String logPath;
-    private final String inputPath;
-    private final String outputPath;
+	private static final Logger LOG = LogManager.getLogger();
 
-    private final Graph graph;
-    private final Neo4jDatabase database;
+	private final String graphName;
 
-    /**
-     * Initializes the platform job with its parameters.
-     *
-     * @param runSpecification the benchmark run specification.
-     * @param platformConfig   the platform configuration.
-     * @param inputPath        the file path of the input graph dataset.
-     * @param outputPath       the file path of the output graph dataset.
-     */
-    public Neo4jJob(RunSpecification runSpecification,
-                    Neo4jConfiguration platformConfig,
-                    String inputPath,
-                    String outputPath) {
+	private final Neo4jConfiguration platformConfig;
+	private final String nodeProjection;
+	private final String relationshipProjection;
+	private final Map<String,Object> options;
+	private final String cypherAlgoCall;
+	private final String outputPath;
+	private final Map<String, Object> config;
 
-        BenchmarkRun benchmarkRun = runSpecification.getBenchmarkRun();
-        BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
-
-        this.jobId = benchmarkRun.getId();
-        this.logPath = benchmarkRunSetup.getLogDir().resolve("platform").toString();
-
-        this.inputPath = inputPath;
-        this.outputPath = outputPath;
-
-        this.graph = benchmarkRun.getGraph();
-
-        LOG.info("Starting database from path: " + inputPath);
-        this.database = new Neo4jDatabase(
-                inputPath,
-                Neo4jJob.class.getResource(PROPERTIES_PATH)
-        );
+	public Neo4jJob(Neo4jConfiguration platformConfig,
+					String nodeProjection, String relationshipProjection, Map<String,Object> options,
+					String cypherAlgoCall, String graphName, Map<String,Object> config, String outputPath) {
+		this.platformConfig = platformConfig;
+        this.nodeProjection = nodeProjection;
+		this.relationshipProjection = relationshipProjection;
+		this.options = options;
+		this.cypherAlgoCall = cypherAlgoCall;
+		this.graphName = graphName;
+		this.config = config;
+		this.outputPath = outputPath;
     }
+	public void execute() throws PlatformExecutionException {
 
-    /**
-     * Executes the platform job with the pre-defined parameters.
-     *
-     * @return the exit code
-     */
-    public int execute() throws KernelException, IOException {
-        compute(
-                database.get(),
-                graph
-        );
-        serialize(
-                database.get(),
-                outputPath
-        );
-        return 0;
-    }
+		try (Driver driver = GraphDatabase.driver("neo4j://localhost");
+			 Session session = driver.session(SessionConfig.forDatabase(graphName))) {
+			session.executeWrite(t -> {
+				runAndLog(t, "CALL gds.graph.project($graphName, $nodeProjection, $relationshipProjection, $options)",
+						Map.of(
+								"graphName", graphName,
+								"nodeProjection", nodeProjection,
+								"relationshipProjection", relationshipProjection,
+								"options", options
+						)
+				);
 
-    protected abstract void compute(
-            GraphDatabaseService graphDatabase,
-            Graph graph
-    ) throws KernelException, IOException;
+				ProcTimeLog.start();
+				runAndLog(t, cypherAlgoCall, Map.of("graphName", graphName, "config", config));
+				ProcTimeLog.end();
 
-    protected void serialize(
-            GraphDatabaseService graphDatabase,
-            String outputPath
-    ) throws IOException { }
+				try (FileWriter writer = new FileWriter(outputPath)) {
+					List<Record> result = t.run(String.format("""
+							CALL gds.graph.nodeProperties.stream('%s','pagerank') yield nodeId, propertyValue
+							return gds.util.asNode(nodeId).VID as id, propertyValue
+							""", graphName)).list();
+					// NOTE: neo4j does not normalize pagerank (and maybe others)
+					double total = result.stream().mapToDouble(record -> record.get("propertyValue").asDouble()).sum();
+					for (Record record: result) {
+						writer.write( String.format(Locale.US, "%d %f\n", record.get("id").asLong(),
+								record.get("propertyValue").asDouble() / total ));
+					}
+
+					runAndLog(t, "CALL gds.graph.drop($graphName)", Map.of("graphName", graphName));
+					return null;
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		} catch (Exception e) {
+			throw new PlatformExecutionException("Failed to execute a Neo4j job.", e);
+		}
+	}
+
+	private Result runAndLog(TransactionContext t, String cypher, Map<String, Object> params) {
+		LOG.info("running {} with params {}", cypher, params);
+		return t.run(cypher, params);
+	}
+
+	private Result runAndLog(TransactionContext t, String cypher) {
+		return runAndLog(t, cypher, Collections.emptyMap());
+	}
 
 }

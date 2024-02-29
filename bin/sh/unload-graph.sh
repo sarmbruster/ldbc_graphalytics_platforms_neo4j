@@ -31,8 +31,8 @@ while [[ $# -gt 1 ]] # Parse two arguments: [--key value] or [-k value]
       GRAPH_NAME="$value"
       shift;;
 
-    --output-path)
-      OUTPUT_PATH="$value"
+    --neo4j-home)
+      NEO4J_HOME="$value"
       shift;;
 
     *)
@@ -43,10 +43,4 @@ while [[ $# -gt 1 ]] # Parse two arguments: [--key value] or [-k value]
   shift
 done
 
-# TODO Reconstruct executable commandline instructions (platform-specific).
- if [[ ! -z "${GRAPH_NAME}" && "${OUTPUT_PATH}" == *"${GRAPH_NAME}"* ]];then
-  COMMAND="rm -r $OUTPUT_PATH"
- else
-   echo "Failed to delete graph ${GRAPH_NAME}, path ${OUTPUT_PATH} does not contain graph name (unsafe)."
-  exit 1
- fi
+echo "DROP DATABASE \`${GRAPH_NAME}\`;" | ${NEO4J_HOME}/bin/cypher-shell

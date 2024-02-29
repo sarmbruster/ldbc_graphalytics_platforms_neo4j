@@ -85,11 +85,11 @@ public class Neo4jLoader {
         String unloaderDir = platformConfig.getUnloaderPath();
         commandLine = new CommandLine(Paths.get(unloaderDir).toFile());
 
+        commandLine.addArgument("--neo4j-home");
+        commandLine.addArgument(platformConfig.getHomePath());
+
         commandLine.addArgument("--graph-name");
         commandLine.addArgument(formattedGraph.getName());
-
-        commandLine.addArgument("--output-path");
-        commandLine.addArgument(loadedInputPath);
 
         String commandString = StringUtils.toString(commandLine.toStrings(), " ");
         LOG.info(String.format("Execute graph unloader with command-line: [%s]", commandString));

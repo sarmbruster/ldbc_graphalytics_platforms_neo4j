@@ -23,6 +23,7 @@ import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -100,9 +101,7 @@ public class Neo4jCollector {
 		});
 
 		if (startTime.get() != -1 && endTime.get() != -1) {
-			procTime = (new BigDecimal(endTime.get() - startTime.get()))
-					.divide(new BigDecimal(1000), 3, BigDecimal.ROUND_CEILING);
-
+			procTime = (new BigDecimal(endTime.get() - startTime.get())).divide(new BigDecimal(1000), 3, RoundingMode.CEILING);
 			return new BenchmarkMetric(procTime, "s");
 		} else {
 			throw new IllegalArgumentException("Failed to extract processing time");

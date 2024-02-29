@@ -38,17 +38,11 @@ public final class Neo4jConfiguration {
     private static final String HOME_PATH_KEY = "platform.neo4j.home";
     private static final String BENCHMARK_IMPL_KEY = "platform.impl";
 
-    public enum BenchmarkImplementation {
-        ALGOLIB,
-        EMBEDDED
-    }
-
     private String loaderPath;
     private String unloaderPath;
     private String executablePath;
     private String terminatorPath;
     private String homePath;
-    private BenchmarkImplementation benchmarkImplementation;
 
     /**
      * Creates a new Neo4jConfiguration object to capture all platform parameters that are not specific to any algorithm.
@@ -108,14 +102,6 @@ public final class Neo4jConfiguration {
         this.homePath = homePath;
     }
 
-    public BenchmarkImplementation getBenchmarkImplementation() {
-        return benchmarkImplementation;
-    }
-
-    public void setBenchmarkImplementation(BenchmarkImplementation benchmarkImplementation) {
-        this.benchmarkImplementation = benchmarkImplementation;
-    }
-
     public static Neo4jConfiguration parsePropertiesFile() {
 
         Neo4jConfiguration platformConfig = new Neo4jConfiguration();
@@ -149,9 +135,6 @@ public final class Neo4jConfiguration {
         Objects.requireNonNull(
                 benchmarkImpl,
                 String.format("The key %s is not defined", BENCHMARK_IMPL_KEY)
-        );
-        platformConfig.setBenchmarkImplementation(
-                BenchmarkImplementation.valueOf(benchmarkImpl.toUpperCase())
         );
 
         return platformConfig;
