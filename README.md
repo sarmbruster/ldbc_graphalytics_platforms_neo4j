@@ -48,12 +48,13 @@ tar neo4j-enterprise-5.16.0-unix.tar.gz
 cd  neo4j-enterprise-5.16.0/plugins
 unzip ../../neo4j-graph-data-science-2.6.1.zip
 cd ..
-echo 'neo4j-graph-data-science-2.6.1.zip' >> conf/neo4j.conf
+echo 'dbms.security.procedures.unrestricted=gds.*,apoc.*' >> conf/neo4j.conf
 echo 'dbms.security.auth_enabled=false' >> conf/neo4j.conf
 mv neo4j-enterprise-5.16.0/ ~/neo4j/
 ~/neo4j/bin/neo4j start
 ```
 
+You might also tweak the memory setting (min_heap, max_heap, pagecache) in `conf/neo4j.conf`.
 After a few seconds neo4j should be reachable on http://localhost:7474. 
 You don't need a username or password to log in.
 
