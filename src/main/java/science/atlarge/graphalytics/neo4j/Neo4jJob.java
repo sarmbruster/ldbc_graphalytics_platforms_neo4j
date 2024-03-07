@@ -81,15 +81,23 @@ public class Neo4jJob {
 
 				try (FileWriter writer = new FileWriter(outputPath)) {
 					List<Record> result = t.run(String.format("""
-							CALL gds.graph.nodeProperties.stream('%s','pagerank') yield nodeId, propertyValue
+							CALL gds.graph.nodeProperties.stream('%s','result') yield nodeId, propertyValue
 							return gds.util.asNode(nodeId).VID as id, propertyValue
 							""", graphName)).list();
+
+
 					// NOTE: neo4j does not normalize pagerank (and maybe others)
 					double total = result.stream().mapToDouble(record -> record.get("propertyValue").asDouble()).sum();
 					for (Record record: result) {
 						writer.write( String.format(Locale.US, "%d %f\n", record.get("id").asLong(),
 								record.get("propertyValue").asDouble() / total ));
 					}
+
+					// if normaliztion is not needed
+//					for (Record record: result) {
+//						writer.write( String.format(Locale.US, "%d %f\n", record.get("id").asLong(),
+//								record.get("propertyValue").asDouble() ));
+//					}
 
 					runAndLog(t, "CALL gds.graph.drop($graphName)", Map.of("graphName", graphName));
 					return null;

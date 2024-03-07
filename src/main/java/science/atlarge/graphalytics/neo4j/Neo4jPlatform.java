@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
 import science.atlarge.graphalytics.domain.algorithms.AlgorithmParameters;
+import science.atlarge.graphalytics.domain.algorithms.EmptyParameters;
 import science.atlarge.graphalytics.domain.algorithms.PageRankParameters;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
@@ -114,11 +115,18 @@ public class Neo4jPlatform implements Platform {
 		Map<String,Object> config;
 		switch (algorithm) {
 			case PR:
-				PageRankParameters params = (PageRankParameters) algorithmParameters;
-				config = Map.of("maxIterations", params.getNumberOfIterations(),
-						"dampingFactor", params.getDampingFactor(),
-						"mutateProperty", "pagerank");
+				PageRankParameters paramsPr = (PageRankParameters) algorithmParameters;
+				config = Map.of("maxIterations", paramsPr.getNumberOfIterations(),
+						"dampingFactor", paramsPr.getDampingFactor(),
+						"mutateProperty", "result");
 				cypher = "CALL gds.pageRank.mutate($graphName, $config)";
+
+				break;
+			case WCC:
+				EmptyParameters params = (EmptyParameters) algorithmParameters;
+				config = Map.of(
+						"mutateProperty", "result");
+				cypher = "CALL gds.wcc.mutate($graphName, $config)";
 
 				break;
 			default:
