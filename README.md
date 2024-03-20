@@ -44,12 +44,13 @@ To get Neo4j and install it to the default location including GDS library, run:
 ```bash
 wget https://dist.neo4j.org/neo4j-enterprise-5.16.0-unix.tar.gz
 wget https://graphdatascience.ninja/neo4j-graph-data-science-2.6.1.zip
-tar neo4j-enterprise-5.16.0-unix.tar.gz
-cd  neo4j-enterprise-5.16.0/plugins
+tar zxf neo4j-enterprise-5.16.0-unix.tar.gz
+cd neo4j-enterprise-5.16.0/plugins
 unzip ../../neo4j-graph-data-science-2.6.1.zip
 cd ..
 echo 'dbms.security.procedures.unrestricted=gds.*,apoc.*' >> conf/neo4j.conf
 echo 'dbms.security.auth_enabled=false' >> conf/neo4j.conf
+cd ..
 mv neo4j-enterprise-5.16.0/ ~/neo4j/
 ~/neo4j/bin/neo4j start
 ```
