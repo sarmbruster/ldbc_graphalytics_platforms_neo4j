@@ -10,6 +10,24 @@ To run the benchmark, follow the steps in the Graphalytics tutorial on [Running 
 
 To build the benchmarks you need to have a Java JDK 21 installed and [Maven](https://maven.apache.org/) as well.
 
+#### Java installation
+```bash
+sudo apt install libc6-i386 libc6-x32 libxi6 libxtst6 -y
+wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb
+sudo dpkg -i jdk-21_linux-x64_bin.deb
+export JAVA_HOME=/usr/lib/jvm/jdk-21-oracle-x64
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+#### Maven installation
+```bash
+wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar -xvf apache-maven-3.6.3-bin.tar.gz
+sudo mv apache-maven-3.6.3 /opt/
+export M2_HOME='/opt/apache-maven-3.6.3'
+export PATH="$M2_HOME/bin:$PATH"
+```
+
 To initialize the benchmark package, run:
 
 ```bash
