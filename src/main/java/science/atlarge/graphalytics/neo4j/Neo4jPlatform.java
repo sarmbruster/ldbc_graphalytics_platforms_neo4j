@@ -21,6 +21,7 @@ import science.atlarge.graphalytics.domain.algorithms.Algorithm;
 import science.atlarge.graphalytics.domain.algorithms.AlgorithmParameters;
 import science.atlarge.graphalytics.domain.algorithms.EmptyParameters;
 import science.atlarge.graphalytics.domain.algorithms.PageRankParameters;
+import science.atlarge.graphalytics.domain.algorithms.CommunityDetectionLPParameters;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.domain.graph.LoadedGraph;
@@ -123,10 +124,24 @@ public class Neo4jPlatform implements Platform {
 
 				break;
 			case WCC:
-				EmptyParameters params = (EmptyParameters) algorithmParameters;
+				EmptyParameters paramsWCC = (EmptyParameters) algorithmParameters;
 				config = Map.of(
 						"mutateProperty", "result");
 				cypher = "CALL gds.wcc.mutate($graphName, $config)";
+
+				break;
+			case LCC:
+				EmptyParameters paramsLCC = (EmptyParameters) algorithmParameters;
+				config = Map.of(
+						"mutateProperty", "result");
+				cypher = "CALL gds.localClusteringCoefficient.mutate($graphName, $config)";
+
+				break;
+			case CDLP:
+				CommunityDetectionLPParameters paramsCDLP = (CommunityDetectionLPParameters) algorithmParameters;
+				config = Map.of("maxIterations", paramsCDLP.getMaxIterations(),
+						"mutateProperty", "result");
+				cypher = "CALL gds.labelPropagation.mutate($graphName, $config)";
 
 				break;
 			default:
