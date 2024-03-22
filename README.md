@@ -74,6 +74,26 @@ mv neo4j-enterprise-5.16.0/ ~/neo4j/
 ```
 
 You might also tweak the memory setting (min_heap, max_heap, pagecache) in `conf/neo4j.conf`.
+Here are some suggested values for different VM sizes:
+```
+# Values for M engine
+server.memory.heap.initial_size=32g
+server.memory.heap.max_size=32g
+# Values for L engine
+# server.memory.heap.initial_size=64g
+# server.memory.heap.max_size=64g
+# Values for XL engine
+# server.memory.heap.initial_size=128g
+# server.memory.heap.max_size=128g
+
+# Values for M engine
+server.memory.pagecache.size=16g
+# Values for L engine
+# server.memory.pagecache.size=32g
+# Values for XL engine
+# server.memory.pagecache.size=64g
+```
+
 After a few seconds neo4j should be reachable on http://localhost:7474. 
 You don't need a username or password to log in.
 
@@ -113,6 +133,17 @@ Since the data itself is available in json format I haven't further investigated
 For a unknown reason the Neo4j results for PageRank (and maybe others) are not fitting the expected value close enough.
 Therefore it's a good idea to switch off result validation otherwise the runtime of the benchmarks are not displayed.
 
+#### Java code changes (e.g., to add more algorithms)
+
+The graphalytics-1.10.0-neo4j-0.1-SNAPSHOT contains copies of the Java code from
+ldbc_graphalytics_platforms_neo4j/src/java, but any changes need to be made to
+ldbc_graphalytics_platforms_neo4j/src/java (to also be committed back to the repo) and
+graphalytics-1.10.0-neo4j-0.1-SNAPSHOT needs to be rebuilt for these changes to be applied to benchmark
+runs.
+
+#### rebuilding after Java code changes
+
+Running init.sh after making changes to the Java code under ldbc_graphalytics_platforms_neo4j rebuilds the graphalytics-1.10.0-neo4j-0.1-SNAPSHOT folder, so any changes to properties files there or reports from past benchmark runs will be lost.
 
 ### hints
 
